@@ -33,8 +33,8 @@ class AnalyzeScanUseCase @Inject constructor(
             sender = sender,
             channel = channel,
         )
-        val trusted = settings.current().trustedDomains
-        val result = withContext(Dispatchers.Default) { analyzer.analyze(event, trusted) }
+        val prefs = settings.current()
+        val result = withContext(Dispatchers.Default) { analyzer.analyze(event, prefs.trustedDomains, prefs.reportedNumbers) }
         return repository.save(event, result)
     }
 }

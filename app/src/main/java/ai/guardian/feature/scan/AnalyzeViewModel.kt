@@ -1,6 +1,7 @@
 package ai.guardian.feature.scan
 
 import ai.guardian.data.repo.AnalyzeScanUseCase
+import ai.guardian.engine.extract.DomainUtils
 import ai.guardian.engine.model.EventSource
 import ai.guardian.engine.model.EventType
 import ai.guardian.navigation.Routes
@@ -17,9 +18,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class InputMode(val eventType: EventType) {
-    TEXT(EventType.MANUAL_TEXT_EVENT),
-    URL(EventType.URL_EVENT),
+enum class InputMode(val title: String, val placeholder: String, val singleLine: Boolean) {
+    TEXT("Check a message", "Paste a message", singleLine = false),
+    URL("Check a link", "Paste a link", singleLine = true),
+    PHONE("Check a number", "e.g. +91 98765 43210", singleLine = true),
+    ADDRESS("Check IP / domain", "e.g. 192.168.1.1 or example.com", singleLine = true);
+
+    fun eventTypeFor(input: String): EventType = when (this) {
+        TEXT -> EventType.MANUAL_TEXT_EVENT
+        URL -> EventType.URL_EVENT
+        PHONE -> EventType.CALL_EVENT
+        ADDRESS -> {
+            val host = input.trim().removePrefix("[").removeSuffix("]")
+            if (DomainUtils.isIpv4(host) || DomainUtils.isIpv6(host.lowercase())) EventType.IP_EVENT else EventType.DOMAIN_EVENT
+        }
+    }
 }
 
 data class AnalyzeUiState(
@@ -58,7 +71,7 @@ class AnalyzeViewModel @Inject constructor(
         if (!current.canAnalyze) return
         _state.update { it.copy(analyzing = true, error = null) }
         viewModelScope.launch {
-            runCatching { analyze(current.mode.eventType, current.input.trim(), EventSource.MANUAL) }
+            runCatching { analyze(current.mode.eventTypeFor(current.input), current.input.trim(), EventSource.MANUAL) }
                 .onSuccess { record ->
                     _state.update { it.copy(analyzing = false) }
                     _results.send(record.result.eventId)

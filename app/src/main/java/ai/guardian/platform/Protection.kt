@@ -3,6 +3,7 @@ package ai.guardian.platform
 import ai.guardian.platform.notifications.MessageNotificationListener
 import ai.guardian.platform.overlay.GuardianAccessibilityService
 import android.Manifest
+import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -20,6 +21,8 @@ data class ProtectionStatus(
     val canPostAlerts: Boolean,
     /** Accessibility service on = floating scan button available. */
     val accessibility: Boolean,
+    /** Guardian holds the call-screening role (checks unknown incoming callers). */
+    val callScreening: Boolean,
 )
 
 object Protection {
@@ -30,7 +33,19 @@ object Protection {
         canPostAlerts = (Build.VERSION.SDK_INT < 33 || granted(context, Manifest.permission.POST_NOTIFICATIONS)) &&
             NotificationManagerCompat.from(context).areNotificationsEnabled(),
         accessibility = isAccessibilityEnabled(context),
+        callScreening = isCallScreener(context),
     )
+
+    fun isCallScreener(context: Context): Boolean {
+        val roles = context.getSystemService(RoleManager::class.java) ?: return false
+        return roles.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING) && roles.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)
+    }
+
+    /** System dialog asking to let Guardian screen calls; null if this phone doesn't offer the role. */
+    fun callScreeningRoleIntent(context: Context): Intent? {
+        val roles = context.getSystemService(RoleManager::class.java) ?: return null
+        return if (roles.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) roles.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING) else null
+    }
 
     fun isAccessibilityEnabled(context: Context): Boolean {
         val enabled = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false

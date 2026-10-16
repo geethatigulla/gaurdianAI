@@ -28,6 +28,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
         val floatingButton = booleanPreferencesKey("floating_button")
         val linkGuard = booleanPreferencesKey("link_guard")
         val trustedDomains = stringSetPreferencesKey("trusted_domains")
+        val reportedNumbers = stringSetPreferencesKey("reported_numbers")
+        val callScreening = booleanPreferencesKey("call_screening")
+        val blockReportedCalls = booleanPreferencesKey("block_reported_calls")
         val notificationsEnabled = booleanPreferencesKey("notifications_enabled")
         val alertThreshold = intPreferencesKey("alert_threshold")
         val lockScreenPrivacy = booleanPreferencesKey("lock_screen_privacy")
@@ -46,6 +49,9 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
             floatingButton = p[Keys.floatingButton] ?: defaults.floatingButton,
             linkGuard = p[Keys.linkGuard] ?: defaults.linkGuard,
             trustedDomains = p[Keys.trustedDomains] ?: defaults.trustedDomains,
+            reportedNumbers = p[Keys.reportedNumbers] ?: defaults.reportedNumbers,
+            callScreening = p[Keys.callScreening] ?: defaults.callScreening,
+            blockReportedCalls = p[Keys.blockReportedCalls] ?: defaults.blockReportedCalls,
             notificationsEnabled = p[Keys.notificationsEnabled] ?: defaults.notificationsEnabled,
             alertThreshold = p[Keys.alertThreshold] ?: defaults.alertThreshold,
             lockScreenPrivacy = p[Keys.lockScreenPrivacy] ?: defaults.lockScreenPrivacy,
@@ -65,6 +71,10 @@ class SettingsRepository @Inject constructor(private val dataStore: DataStore<Pr
     suspend fun setLinkGuard(enabled: Boolean) = dataStore.edit { it[Keys.linkGuard] = enabled }
     suspend fun trustDomain(domain: String) = dataStore.edit { it[Keys.trustedDomains] = (it[Keys.trustedDomains] ?: emptySet()) + domain.lowercase() }
     suspend fun untrustDomain(domain: String) = dataStore.edit { it[Keys.trustedDomains] = (it[Keys.trustedDomains] ?: emptySet()) - domain }
+    suspend fun reportNumber(number: String) = dataStore.edit { it[Keys.reportedNumbers] = (it[Keys.reportedNumbers] ?: emptySet()) + number }
+    suspend fun unreportNumber(number: String) = dataStore.edit { it[Keys.reportedNumbers] = (it[Keys.reportedNumbers] ?: emptySet()) - number }
+    suspend fun setCallScreening(enabled: Boolean) = dataStore.edit { it[Keys.callScreening] = enabled }
+    suspend fun setBlockReportedCalls(enabled: Boolean) = dataStore.edit { it[Keys.blockReportedCalls] = enabled }
     suspend fun setNotificationsEnabled(enabled: Boolean) = dataStore.edit { it[Keys.notificationsEnabled] = enabled }
     suspend fun setAlertThreshold(score: Int) = dataStore.edit { it[Keys.alertThreshold] = score.coerceIn(0, 100) }
     suspend fun setLockScreenPrivacy(enabled: Boolean) = dataStore.edit { it[Keys.lockScreenPrivacy] = enabled }

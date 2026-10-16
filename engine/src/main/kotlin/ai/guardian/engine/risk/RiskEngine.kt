@@ -78,7 +78,11 @@ class RiskEngine(private val config: ScoringConfig = ScoringConfig.DEFAULT) {
         if (familySeverities.isEmpty()) return Category.NO_KNOWN_INDICATORS
         val significant = familySeverities.filterValues { it >= Severity.MEDIUM }.keys.ifEmpty { familySeverities.keys }
 
-        val linkCategory = if (eventType == EventType.QR_EVENT) Category.SUSPICIOUS_QR else Category.SUSPICIOUS_LINK
+        val linkCategory = when (eventType) {
+            EventType.QR_EVENT -> Category.SUSPICIOUS_QR
+            EventType.DOMAIN_EVENT, EventType.IP_EVENT -> Category.SUSPICIOUS_ADDRESS
+            else -> Category.SUSPICIOUS_LINK
+        }
         val priority: List<Pair<String, String>> = listOf(
             Family.REMOTE_ACCESS_LURE to Category.REMOTE_ACCESS_SCAM,
             Family.APK_LURE to Category.MALWARE_LURE,
@@ -94,6 +98,7 @@ class RiskEngine(private val config: ScoringConfig = ScoringConfig.DEFAULT) {
             Family.URL_OBFUSCATION to linkCategory,
             Family.URL_STRUCTURE to linkCategory,
             Family.URL_TRANSPORT to linkCategory,
+            Family.USER_REPORT to Category.SUSPICIOUS_NUMBER,
             Family.NUMBER_FORMAT to Category.SUSPICIOUS_NUMBER,
             Family.NETWORK_ADDRESS to Category.SUSPICIOUS_ADDRESS,
         )

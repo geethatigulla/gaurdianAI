@@ -18,6 +18,12 @@ data class UserSettings(
     val linkGuard: Boolean = true,
     /** Domains the user trusts (e.g. their own dev/staging sites); links to them are not checked. */
     val trustedDomains: Set<String> = emptySet(),
+    /** Numbers the user reported as scams (E.164). */
+    val reportedNumbers: Set<String> = emptySet(),
+    /** Check incoming calls from unknown numbers (needs the call-screening role). */
+    val callScreening: Boolean = true,
+    /** Reject calls from reported numbers. Off by default: blocking is the user's explicit choice. */
+    val blockReportedCalls: Boolean = false,
     val notificationsEnabled: Boolean = true,
     val alertThreshold: Int = 60,
     val lockScreenPrivacy: Boolean = true,

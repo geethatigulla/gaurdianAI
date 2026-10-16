@@ -18,6 +18,9 @@ kotlin {
 }
 
 dependencies {
+    // Pure Java phone-number parsing with bundled metadata: works offline, no Android needed.
+    implementation(libs.libphonenumber)
+
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)

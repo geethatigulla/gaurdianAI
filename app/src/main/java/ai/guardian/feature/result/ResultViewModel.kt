@@ -54,6 +54,11 @@ class ResultViewModel @Inject constructor(
         viewModelScope.launch { settings.trustDomain(domain) }
     }
 
+    /** Future calls/SMS from this number are flagged (and blocked, if the user enabled that). */
+    fun reportNumber(number: String) {
+        viewModelScope.launch { settings.reportNumber(number) }
+    }
+
     fun delete() {
         viewModelScope.launch {
             repository.delete(id)

@@ -1,6 +1,8 @@
 package ai.guardian.data.repo
 
+import ai.guardian.engine.detect.caller.PhoneNumbers
 import ai.guardian.engine.extract.DomainUtils
+import ai.guardian.engine.extract.EntityExtractor
 import ai.guardian.engine.extract.UrlExtractor
 import ai.guardian.engine.model.EventSource
 import ai.guardian.engine.model.EventType
@@ -21,6 +23,8 @@ data class ScanRecord(
     val openableUrl: String? = null,
     /** Public sites linked from this scan that the user could choose to trust. Memory only. */
     val linkDomains: List<String> = emptyList(),
+    /** Phone numbers in this scan (caller, sender, numbers in the text) the user could report. Memory only. */
+    val phoneNumbers: List<String> = emptyList(),
 )
 
 data class ScanSummary(
@@ -67,6 +71,19 @@ object LinkDomains {
             else -> UrlExtractor.extract(event.rawInput)
         }
         return urls.filter { !it.isIpHost && !DomainUtils.isLocalOrPrivate(it.host) }.map { it.registrableDomain }.distinct().take(5)
+    }
+}
+
+object PhoneNumbersIn {
+    fun forEvent(event: SecurityEvent): List<String> {
+        val raw = buildList {
+            if (event.type == EventType.CALL_EVENT) add(event.rawInput)
+            event.sender?.takeIf { !PhoneNumbers.looksLikeSenderId(it) }?.let(::add)
+            if (event.type != EventType.CALL_EVENT && event.type != EventType.IP_EVENT && event.type != EventType.DOMAIN_EVENT) {
+                addAll(EntityExtractor().extractFromText(event.rawInput).phones)
+            }
+        }
+        return raw.filter { !PhoneNumbers.looksLikeSenderId(it) }.mapNotNull { PhoneNumbers.normalize(it) }.distinct().take(3)
     }
 }
 

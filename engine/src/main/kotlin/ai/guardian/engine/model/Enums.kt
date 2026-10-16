@@ -4,7 +4,7 @@ package ai.guardian.engine.model
 enum class EventType { SMS_EVENT, APP_MESSAGE_EVENT, MANUAL_TEXT_EVENT, URL_EVENT, QR_EVENT, CALL_EVENT, IP_EVENT, DOMAIN_EVENT }
 
 /** Where the input came from. Informational only — never changes scoring. */
-enum class EventSource { MANUAL, SHARE_INTENT, PROCESS_TEXT, CLIPBOARD, LINK_HANDLER, QR_CAMERA, QR_IMAGE, SMS_RECEIVER, NOTIFICATION, SCREEN, BROWSER }
+enum class EventSource { MANUAL, SHARE_INTENT, PROCESS_TEXT, CLIPBOARD, LINK_HANDLER, QR_CAMERA, QR_IMAGE, SMS_RECEIVER, NOTIFICATION, SCREEN, BROWSER, CALL_SCREENING }
 
 /**
  * UI bands over the 0–100 score. These are categories, not calibrated probabilities.

@@ -10,12 +10,13 @@ import ai.guardian.engine.model.EventType
 /** Runs every URL rule against every link found in the event (capped, to bound work). */
 class UrlRulesDetector(private val rules: List<UrlRule> = defaultRules()) : Detector {
     override val name = "Link structure & look-alike check"
-    override val supportedTypes = setOf(EventType.SMS_EVENT, EventType.APP_MESSAGE_EVENT, EventType.MANUAL_TEXT_EVENT, EventType.URL_EVENT, EventType.QR_EVENT)
+    override val supportedTypes = setOf(EventType.SMS_EVENT, EventType.APP_MESSAGE_EVENT, EventType.MANUAL_TEXT_EVENT, EventType.URL_EVENT, EventType.QR_EVENT, EventType.DOMAIN_EVENT)
 
     override fun detect(context: DetectionContext): DetectorOutput {
         val urls = context.extracted.urls.take(MAX_URLS)
         if (urls.isEmpty()) {
-            return if (context.event.type == EventType.URL_EVENT && context.extracted.skippedUrls.isEmpty()) {
+            val singleAddress = context.event.type == EventType.URL_EVENT || context.event.type == EventType.DOMAIN_EVENT
+            return if (singleAddress && context.extracted.skippedUrls.isEmpty()) {
                 DetectorOutput(checks = listOf(Check(name, CheckStatus.FAILED, "Couldn't read a web address from the input")))
             } else {
                 DetectorOutput.EMPTY // No links: this check simply doesn't apply.

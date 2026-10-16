@@ -3,6 +3,10 @@ package ai.guardian.engine
 import ai.guardian.engine.detect.DetectionContext
 import ai.guardian.engine.detect.Detector
 import ai.guardian.engine.detect.DetectorOutput
+import ai.guardian.engine.detect.address.AddressDetector
+import ai.guardian.engine.detect.caller.NumberFormatDetector
+import ai.guardian.engine.detect.caller.PhoneNumbers
+import ai.guardian.engine.detect.caller.ReportedNumberDetector
 import ai.guardian.engine.detect.qr.QrPayloadDetector
 import ai.guardian.engine.detect.sms.TextRulesDetector
 import ai.guardian.engine.detect.url.UrlRulesDetector
@@ -39,11 +43,13 @@ class Analyzer(
     /**
      * @param trustedDomains domains the user marked as trusted; links to them (and their
      * subdomains) are not checked. The message text around them still is.
+     * @param reportedNumbers numbers the user reported as scams (any format; normalised here).
      */
-    fun analyze(event: SecurityEvent, trustedDomains: Set<String> = emptySet()): RiskResult {
+    fun analyze(event: SecurityEvent, trustedDomains: Set<String> = emptySet(), reportedNumbers: Set<String> = emptySet()): RiskResult {
         val bounded = if (event.rawInput.length > MAX_INPUT_CHARS) event.copy(rawInput = event.rawInput.take(MAX_INPUT_CHARS)) else event
         val extracted = skipLocalAndTrusted(extract(bounded), trustedDomains)
-        val context = DetectionContext(bounded, extracted)
+        val reported = reportedNumbers.mapNotNull { PhoneNumbers.normalize(it) }.toSet()
+        val context = DetectionContext(bounded, extracted, reported)
 
         val outputs = detectors.filter { bounded.type in it.supportedTypes }.map { detector ->
             runCatching { detector.detect(context) }.getOrElse { error ->
@@ -95,14 +101,21 @@ class Analyzer(
     }
 
     private fun extract(event: SecurityEvent): ExtractedEntities = when (event.type) {
-        EventType.URL_EVENT -> ExtractedEntities(urls = listOfNotNull(UrlExtractor.parseSingle(event.rawInput)))
+        EventType.URL_EVENT, EventType.DOMAIN_EVENT -> ExtractedEntities(urls = listOfNotNull(UrlExtractor.parseSingle(event.rawInput)))
         EventType.SMS_EVENT, EventType.APP_MESSAGE_EVENT, EventType.MANUAL_TEXT_EVENT, EventType.QR_EVENT -> extractor.extractFromText(event.rawInput)
-        EventType.CALL_EVENT, EventType.IP_EVENT, EventType.DOMAIN_EVENT -> ExtractedEntities.NONE
+        EventType.CALL_EVENT, EventType.IP_EVENT -> ExtractedEntities.NONE
     }
 
     companion object {
         const val MAX_INPUT_CHARS = 10_000
 
-        fun defaultDetectors(): List<Detector> = listOf(TextRulesDetector(), UrlRulesDetector(), QrPayloadDetector())
+        fun defaultDetectors(): List<Detector> = listOf(
+            TextRulesDetector(),
+            UrlRulesDetector(),
+            QrPayloadDetector(),
+            NumberFormatDetector(),
+            ReportedNumberDetector(),
+            AddressDetector(),
+        )
     }
 }

@@ -50,6 +50,7 @@ class ScanRepository @Inject constructor(
             savedToHistory = keep,
             openableUrl = OpenableUrl.forEvent(event),
             linkDomains = LinkDomains.forEvent(event),
+            phoneNumbers = PhoneNumbersIn.forEvent(event),
         )
         cacheLock.withLock { cache[result.eventId] = record }
         if (keep) {

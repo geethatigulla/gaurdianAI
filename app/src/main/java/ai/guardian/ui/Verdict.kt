@@ -79,5 +79,10 @@ fun Indicator.shortTitle(): String = when (type) {
     "QR_SENDS_SMS" -> "QR sends an SMS"
     "QR_DIALS_NUMBER" -> "QR dials a number"
     "QR_OPEN_WIFI" -> "Open Wi-Fi network"
+    "UNREADABLE_NUMBER", "INVALID_NUMBER" -> "Fake-looking number"
+    "INTERNATIONAL_NUMBER" -> "Foreign number"
+    "PREMIUM_RATE_NUMBER" -> "Premium-rate number"
+    "VOIP_NUMBER" -> "Internet (VoIP) number"
+    "REPORTED_NUMBER" -> "You reported this number"
     else -> description.substringBefore(" — ").substringBefore(",").take(40)
 }

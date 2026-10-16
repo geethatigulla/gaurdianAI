@@ -26,6 +26,7 @@ object Family {
     // Other event types
     const val QR_PAYLOAD = "QR_PAYLOAD"
     const val NUMBER_FORMAT = "NUMBER_FORMAT"
+    const val USER_REPORT = "USER_REPORT"
     const val NETWORK_ADDRESS = "NETWORK_ADDRESS"
 }
 

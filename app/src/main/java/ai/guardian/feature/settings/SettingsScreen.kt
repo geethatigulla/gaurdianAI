@@ -24,6 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Notes
+import androidx.compose.material.icons.outlined.PhoneDisabled
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Sms
 import androidx.compose.material.icons.outlined.TouchApp
@@ -90,6 +93,9 @@ class SettingsViewModel @Inject constructor(
     fun setAppMessageMonitoring(enabled: Boolean) = viewModelScope.launch { settings.setAppMessageMonitoring(enabled) }
     fun setFloatingButton(enabled: Boolean) = viewModelScope.launch { settings.setFloatingButton(enabled) }
     fun setLinkGuard(enabled: Boolean) = viewModelScope.launch { settings.setLinkGuard(enabled) }
+    fun setCallScreening(enabled: Boolean) = viewModelScope.launch { settings.setCallScreening(enabled) }
+    fun setBlockReportedCalls(enabled: Boolean) = viewModelScope.launch { settings.setBlockReportedCalls(enabled) }
+    fun unreport(number: String) = viewModelScope.launch { settings.unreportNumber(number) }
     fun setAlertThreshold(score: Int) = viewModelScope.launch { settings.setAlertThreshold(score) }
     fun setLockScreenPrivacy(enabled: Boolean) = viewModelScope.launch { settings.setLockScreenPrivacy(enabled) }
     fun untrust(domain: String) = viewModelScope.launch { settings.untrustDomain(domain) }
@@ -101,7 +107,8 @@ fun protections(settings: UserSettings, status: ProtectionStatus) = listOf(
     ProtectionItem("Floating", Icons.Outlined.TouchApp, settings.floatingButton && status.accessibility),
     ProtectionItem("SMS", Icons.Outlined.Sms, settings.smsMonitoring && status.smsPermission),
     ProtectionItem("Apps", Icons.Outlined.Chat, settings.appMessageMonitoring && status.notificationAccess),
-    ProtectionItem("Websites", Icons.Outlined.Link, settings.linkGuard && status.accessibility),
+    ProtectionItem("Web", Icons.Outlined.Link, settings.linkGuard && status.accessibility),
+    ProtectionItem("Calls", Icons.Outlined.Call, settings.callScreening && status.callScreening),
 )
 
 private val THRESHOLD_OPTIONS = listOf(40, 60, 80)
@@ -198,6 +205,20 @@ fun SettingsScreen(onOpenAbout: () -> Unit, onOpenHelp: () -> Unit, viewModel: S
                 }
             }
 
+            val callsOn = s.callScreening && status.callScreening
+            ToggleRow(Icons.Outlined.Call, "Calls", if (callsOn) "Unknown callers are checked before ringing" else "Off", callsOn) { enable ->
+                viewModel.setCallScreening(enable)
+                if (enable && !status.callScreening) {
+                    askAlerts()
+                    val intent = Protection.callScreeningRoleIntent(context)
+                    if (intent != null) systemScreen.launch(intent)
+                    else Toast.makeText(context, "This phone doesn't support call screening apps", Toast.LENGTH_LONG).show()
+                }
+            }
+            if (callsOn) {
+                ToggleRow(Icons.Outlined.Block, "Block reported numbers", if (s.blockReportedCalls) "Calls from them are rejected" else "Off · only warn", s.blockReportedCalls, viewModel::setBlockReportedCalls)
+            }
+
             if (showRestrictedHint && (!status.accessibility || !status.notificationAccess)) {
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     InfoNote("Switch greyed out? Open App info → ⋮ → \"Allow restricted settings\", then try again.")
@@ -205,7 +226,7 @@ fun SettingsScreen(onOpenAbout: () -> Unit, onOpenHelp: () -> Unit, viewModel: S
                 }
             }
 
-            if (smsOn || appsOn) {
+            if (smsOn || appsOn || callsOn) {
                 ValueRow(Icons.Outlined.NotificationsActive, "Alert me for", thresholdLabel(s.alertThreshold)) { dialog = "threshold" }
                 ToggleRow(Icons.Outlined.Lock, "Hide on lock screen", null, s.lockScreenPrivacy, viewModel::setLockScreenPrivacy)
                 if (!status.canPostAlerts) {
@@ -231,6 +252,7 @@ fun SettingsScreen(onOpenAbout: () -> Unit, onOpenHelp: () -> Unit, viewModel: S
             Header("Privacy")
             ToggleRow(Icons.Outlined.Notes, "Save message text", if (s.storeRawText) "Saved with numbers masked" else "Off", s.storeRawText, viewModel::setStoreRawText)
             ValueRow(Icons.Outlined.VerifiedUser, "Trusted websites", if (s.trustedDomains.isEmpty()) "None" else "${s.trustedDomains.size}") { dialog = "trusted" }
+            ValueRow(Icons.Outlined.PhoneDisabled, "Reported numbers", if (s.reportedNumbers.isEmpty()) "None" else "${s.reportedNumbers.size}") { dialog = "reported" }
             ValueRow(Icons.Outlined.History, "Keep history", retentionLabel(s.retentionDays)) { dialog = "retention" }
             ValueRow(Icons.Outlined.DeleteOutline, "Clear history", null, danger = true) { dialog = "clear" }
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -257,6 +279,22 @@ fun SettingsScreen(onOpenAbout: () -> Unit, onOpenHelp: () -> Unit, viewModel: S
                             ListItem(
                                 headlineContent = { Text(domain) },
                                 trailingContent = { TextButton(onClick = { viewModel.untrust(domain) }) { Text("Remove") } },
+                            )
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { dialog = null }) { Text("Close") } },
+            )
+            "reported" -> AlertDialog(
+                onDismissRequest = { dialog = null },
+                title = { Text("Reported numbers") },
+                text = {
+                    Column {
+                        if (s.reportedNumbers.isEmpty()) Text("None yet. Tap Report on a result with a scam number.")
+                        s.reportedNumbers.sorted().forEach { number ->
+                            ListItem(
+                                headlineContent = { Text(number) },
+                                trailingContent = { TextButton(onClick = { viewModel.unreport(number) }) { Text("Remove") } },
                             )
                         }
                     }

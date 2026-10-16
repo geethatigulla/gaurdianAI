@@ -6,7 +6,12 @@ import ai.guardian.engine.model.EventType
 import ai.guardian.engine.model.Indicator
 import ai.guardian.engine.model.SecurityEvent
 
-data class DetectionContext(val event: SecurityEvent, val extracted: ExtractedEntities)
+data class DetectionContext(
+    val event: SecurityEvent,
+    val extracted: ExtractedEntities,
+    /** Numbers the user reported, in E.164 form. */
+    val reportedNumbers: Set<String> = emptySet(),
+)
 
 data class DetectorOutput(val indicators: List<Indicator> = emptyList(), val checks: List<Check> = emptyList()) {
     companion object {

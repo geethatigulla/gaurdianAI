@@ -29,7 +29,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.GppGood
 import androidx.compose.material.icons.filled.GppMaybe
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Sms
@@ -116,6 +118,10 @@ fun HomeScreen(
                     ActionTile("Message", Icons.Outlined.Sms, Modifier.weight(1f)) { onStartScan(InputMode.TEXT) }
                     ActionTile("Link", Icons.Outlined.Link, Modifier.weight(1f)) { onStartScan(InputMode.URL) }
                 }
+                Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmallActionTile("Number", Icons.Outlined.Phone, Modifier.weight(1f)) { onStartScan(InputMode.PHONE) }
+                    SmallActionTile("IP / Domain", Icons.Outlined.Dns, Modifier.weight(1f)) { onStartScan(InputMode.ADDRESS) }
+                }
             }
 
             item {
@@ -190,6 +196,16 @@ private fun ProtectionChip(item: ProtectionItem, modifier: Modifier = Modifier) 
         }
         Text(item.label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
         Text(if (item.on) "On" else "Off", style = MaterialTheme.typography.labelSmall, color = if (item.on) risk.low else MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun SmallActionTile(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+        Row(Modifier.fillMaxWidth().padding(vertical = 14.dp, horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(24.dp))
+            Text(label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(start = 10.dp))
+        }
     }
 }
 

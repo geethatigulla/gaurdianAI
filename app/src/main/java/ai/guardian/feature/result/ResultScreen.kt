@@ -115,7 +115,7 @@ fun ResultScreen(
                     Modifier.align(Alignment.Center).padding(32.dp),
                     textAlign = TextAlign.Center,
                 )
-                is ResultUiState.Loaded -> ResultContent(s.record, onScanAnother, viewModel::setFeedback, viewModel::trustDomain)
+                is ResultUiState.Loaded -> ResultContent(s.record, onScanAnother, viewModel::setFeedback, viewModel::trustDomain, viewModel::reportNumber)
             }
         }
     }
@@ -131,7 +131,7 @@ fun ResultScreen(
 }
 
 @Composable
-private fun ResultContent(record: ScanRecord, onScanAnother: () -> Unit, onFeedback: (UserFeedback) -> Unit, onTrust: (String) -> Unit) {
+private fun ResultContent(record: ScanRecord, onScanAnother: () -> Unit, onFeedback: (UserFeedback) -> Unit, onTrust: (String) -> Unit, onReport: (String) -> Unit) {
     val r = record.result
     var showDetails by rememberSaveable { mutableStateOf(false) }
 
@@ -166,6 +166,7 @@ private fun ResultContent(record: ScanRecord, onScanAnother: () -> Unit, onFeedb
             }
             if (record.linkDomains.isNotEmpty()) item { TrustLinks(record.linkDomains, onTrust) }
         }
+        if (record.phoneNumbers.isNotEmpty()) item { ReportNumbers(record.phoneNumbers, onReport) }
 
         item {
             Row(
@@ -243,6 +244,25 @@ private fun TrustLinks(domains: List<String>, onTrust: (String) -> Unit) {
             },
             dismissButton = { TextButton(onClick = { pending = null }) { Text("Cancel") } },
         )
+    }
+}
+
+/** Lets the user build their own scam-number list: flagged next time, optionally blocked. */
+@Composable
+private fun ReportNumbers(numbers: List<String>, onReport: (String) -> Unit) {
+    val context = LocalContext.current
+    var reported by remember { mutableStateOf(emptySet<String>()) }
+    Column {
+        Text("Scam number?", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        numbers.forEach { number ->
+            TextButton(onClick = {
+                onReport(number)
+                reported = reported + number
+                Toast.makeText(context, "$number reported", Toast.LENGTH_SHORT).show()
+            }, enabled = number !in reported) {
+                Text(if (number in reported) "Reported: $number" else "Report $number")
+            }
+        }
     }
 }
 

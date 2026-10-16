@@ -64,8 +64,9 @@ enum class LevelFilter(val label: String, val matches: (RiskLevel) -> Boolean) {
 enum class TypeFilter(val label: String, val matches: (EventType) -> Boolean) {
     ALL("All types", { true }),
     MESSAGES("Messages", { it == EventType.SMS_EVENT || it == EventType.APP_MESSAGE_EVENT || it == EventType.MANUAL_TEXT_EVENT }),
-    LINKS("Links", { it == EventType.URL_EVENT }),
+    LINKS("Links", { it == EventType.URL_EVENT || it == EventType.DOMAIN_EVENT || it == EventType.IP_EVENT }),
     QR("QR codes", { it == EventType.QR_EVENT }),
+    CALLS("Calls", { it == EventType.CALL_EVENT }),
 }
 
 data class ActivityFilters(val query: String = "", val level: LevelFilter = LevelFilter.ALL, val type: TypeFilter = TypeFilter.ALL)

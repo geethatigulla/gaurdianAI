@@ -60,6 +60,25 @@ private val urlExamples = listOf(
     "APK download" to "http://45.67.89.10/EB-bill.apk",
     "Official site" to "https://www.onlinesbi.sbi",
 )
+private val phoneExamples = listOf(
+    "Indian mobile" to "+91 98765 43210",
+    "Foreign number" to "+92 300 1234567",
+    "Invalid number" to "+91 12345",
+    "Business sender ID" to "VM-SBIINB",
+)
+private val addressExamples = listOf(
+    "Look-alike domain" to "hdfcbnak.com",
+    "Home router (private IP)" to "192.168.1.1",
+    "Public IP" to "8.8.8.8",
+    "Official domain" to "onlinesbi.sbi",
+)
+
+private fun examplesFor(mode: InputMode) = when (mode) {
+    InputMode.TEXT -> textExamples
+    InputMode.URL -> urlExamples
+    InputMode.PHONE -> phoneExamples
+    InputMode.ADDRESS -> addressExamples
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,19 +90,19 @@ fun AnalyzeInputScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     @Suppress("DEPRECATION") val clipboard = LocalClipboardManager.current
     var examplesOpen by remember { mutableStateOf(false) }
-    val isUrl = state.mode == InputMode.URL
+    val singleLine = state.mode.singleLine
 
     LaunchedEffect(Unit) { viewModel.results.collect(onResult) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isUrl) "Check a link" else "Check a message") },
+                title = { Text(state.mode.title) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") } },
                 actions = {
                     Box {
                         DropdownMenu(expanded = examplesOpen, onDismissRequest = { examplesOpen = false }) {
-                            (if (isUrl) urlExamples else textExamples).forEach { (label, sample) ->
+                            examplesFor(state.mode).forEach { (label, sample) ->
                                 DropdownMenuItem(text = { Text(label) }, onClick = {
                                     viewModel.onInputChange(sample)
                                     examplesOpen = false
@@ -102,13 +121,17 @@ fun AnalyzeInputScreen(
             OutlinedTextField(
                 value = state.input,
                 onValueChange = viewModel::onInputChange,
-                modifier = Modifier.fillMaxWidth().heightIn(min = if (isUrl) 56.dp else 180.dp),
-                placeholder = { Text(if (isUrl) "Paste a link" else "Paste a message") },
-                singleLine = isUrl,
+                modifier = Modifier.fillMaxWidth().heightIn(min = if (singleLine) 56.dp else 180.dp),
+                placeholder = { Text(state.mode.placeholder) },
+                singleLine = singleLine,
                 isError = state.tooLong,
                 supportingText = if (state.tooLong) ({ Text("Too long — max ${AnalyzeUiState.MAX_INPUT} characters") }) else null,
                 keyboardActions = KeyboardActions(onGo = { viewModel.analyze() }),
-                keyboardOptions = if (isUrl) KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go) else KeyboardOptions.Default,
+                keyboardOptions = when (state.mode) {
+                    InputMode.TEXT -> KeyboardOptions.Default
+                    InputMode.PHONE -> KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Go)
+                    InputMode.URL, InputMode.ADDRESS -> KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go)
+                },
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { clipboard.getText()?.text?.let(viewModel::onInputChange) }) {
