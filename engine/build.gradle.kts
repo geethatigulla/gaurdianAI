@@ -33,3 +33,14 @@ tasks.test {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
+
+// Offline evaluation on the labelled dataset; writes the paper's tables to docs/evaluation/.
+tasks.register<JavaExec>("evaluate") {
+    group = "verification"
+    description = "Runs the engine on eval/dataset.csv and writes precision/recall/F1 tables."
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("ai.guardian.engine.eval.EvaluateKt")
+    workingDir = projectDir
+    args("eval/dataset.csv", "../docs/evaluation")
+}

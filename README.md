@@ -38,7 +38,7 @@ are never flagged · you can mark your own sites as trusted and report scam numb
 engine/  pure Kotlin/JVM: extract → detect → intel (stub) → risk → explain   (168 JUnit tests)
 core/    Compose design system (theme, risk colours, badges, gauge)           (3 UI tests)
 app/     Compose UI, Hilt, Room, DataStore, WorkManager, Android integrations (8 unit + 4 UI tests)
-docs/    architecture.md · risk-scoring.md · demo-script.md
+docs/    architecture.md · risk-scoring.md · demo-script.md · evaluation/
 ```
 
 ## Build & run
@@ -52,6 +52,7 @@ Open the folder in Android Studio (it bundles a JDK), or from a terminal (on Win
 ./gradlew assembleDebug            # APK at app/build/outputs/apk/debug/app-debug.apk
 ./gradlew installDebug             # install on a connected phone
 ./gradlew connectedDebugAndroidTest  # UI tests, needs a connected phone
+./gradlew :engine:evaluate         # precision/recall/F1 on the labelled dataset → docs/evaluation/
 ```
 
 Installing the APK from a file on Android 13+ may be blocked by Play Protect because the app asks for
