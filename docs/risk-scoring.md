@@ -5,8 +5,8 @@ Source: `engine/src/main/kotlin/ai/guardian/engine/risk/`. Tests: `RiskEngineTes
 ## Pipeline
 
 ```
-SecurityEvent ─► extract (URLs, phones, UPI IDs, e-mails)
-              ─► detect  (TextRulesDetector, UrlRulesDetector)  → Indicators + Checks
+SecurityEvent ─► extract (URLs, phones, UPI IDs, e-mails; skip local & trusted links)
+              ─► detect  (text, URL, QR, number, reported-number, address detectors) → Indicators + Checks
               ─► intel   (NoopIntelProvider)                     → Checks = UNAVAILABLE
               ─► risk    (RiskEngine)                            → score, level, category, evidence quality
               ─► explain (TemplateExplainer)                     → summary, recommendation
@@ -58,6 +58,12 @@ SecurityEvent ─► extract (URLs, phones, UPI IDs, e-mails)
 | `URL_IMPERSONATION` | look-alike domain (edit distance + homoglyphs), brand in unrelated domain, punycode | MEDIUM–STRONG |
 | `URL_STRUCTURE` | suspicious TLD, long URL, many subdomains, odd port, lure keywords | WEAK |
 | `URL_TRANSPORT` | plain `http://` | WEAK |
+| `QR_PAYLOAD` | script/data payload (STRONG), opens an app, sends an SMS, dials, open Wi-Fi | WEAK–STRONG |
+| `NUMBER_FORMAT` | invalid/unreadable number, premium-rate (MEDIUM), foreign or VoIP number (WEAK) | WEAK–MEDIUM |
+| `USER_REPORT` | caller or sender is a number the user reported | STRONG |
+
+Links to local/private addresses (localhost, 10.x, 192.168.x, *.local, …) and to domains the user
+marked as trusted are skipped before detection and listed in a "Local & trusted links" check.
 
 ## Calibration status
 

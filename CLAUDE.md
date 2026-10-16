@@ -26,6 +26,7 @@ $env:JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"
 .\gradlew.bat :engine:test        # fast, pure JVM
 .\gradlew.bat assembleDebug
 .\gradlew.bat :app:testDebugUnitTest
+.\gradlew.bat connectedDebugAndroidTest   # UI tests, needs a connected phone
 ```
 
 ## Versions
@@ -35,4 +36,4 @@ compileSdk 36 · targetSdk 35 · minSdk 29 · JDK 17 bytecode.
 ## Build phases
 1 Shell ✅ · 2 Engine ✅ · 3 Text analysis + history ✅ · 4 Share / text-selection link checks ✅ (default-browser mode removed: too hard to use) ·
 4b Messaging-app checks via NotificationListenerService ✅ · 4c Floating scan button (AccessibilityService overlay: screen text + screenshot QR) ✅ · 4d Browser website guard (address bar via accessibility) + trusted domains + local-address skip ✅ · 5 QR (CameraX + ZXing, tile, widget) ✅ · 6 Number & IP/domain checks, call screening (unknown callers), reported numbers ✅ · 7 Daily retention worker (WorkManager) + app lock (BiometricPrompt) ✅ ·
-8 SMS receiver + notifications ✅ (built, untested on device) · 9 Polish, UI tests, docs.
+8 SMS receiver + notifications ✅ · 9 UI tests (core + app androidTest), README, demo script ✅ · Next: evaluation harness for the paper, LLM second opinion.
