@@ -8,3 +8,6 @@ build/
 .externalNativeBuild
 .cxx
 .kotlin/
+
+# Third-party evaluation corpora (copyright their authors; rebuild with engine/eval/prepare_uci.py)
+/engine/eval/external/

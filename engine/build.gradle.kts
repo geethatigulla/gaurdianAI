@@ -44,3 +44,14 @@ tasks.register<JavaExec>("evaluate") {
     workingDir = projectDir
     args("eval/dataset.csv", "../docs/evaluation")
 }
+
+// Same evaluation on the public UCI SMS Spam Collection (prepare it with eval/prepare_uci.py first).
+tasks.register<JavaExec>("evaluateUci") {
+    group = "verification"
+    description = "Runs the engine on the UCI SMS Spam Collection and writes docs/evaluation/uci/."
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("ai.guardian.engine.eval.EvaluateKt")
+    workingDir = projectDir
+    args("eval/external/uci_sms.csv", "../docs/evaluation/uci")
+}

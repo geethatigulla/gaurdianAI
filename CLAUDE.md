@@ -36,4 +36,4 @@ compileSdk 36 · targetSdk 35 · minSdk 29 · JDK 17 bytecode.
 ## Build phases
 1 Shell ✅ · 2 Engine ✅ · 3 Text analysis + history ✅ · 4 Share / text-selection link checks ✅ (default-browser mode removed: too hard to use) ·
 4b Messaging-app checks via NotificationListenerService ✅ · 4c Floating scan button (AccessibilityService overlay: screen text + screenshot QR) ✅ · 4d Browser website guard (address bar via accessibility) + trusted domains + local-address skip ✅ · 5 QR (CameraX + ZXing, tile, widget) ✅ · 6 Number & IP/domain checks, call screening (unknown callers), reported numbers ✅ · 7 Daily retention worker (WorkManager) + app lock (BiometricPrompt) ✅ ·
-8 SMS receiver + notifications ✅ · 9 UI tests (core + app androidTest), README, demo script ✅ · Evaluation harness (`:engine:evaluate`, docs/evaluation) ✅ · Next: public-dataset validation, LLM second opinion.
+8 SMS receiver + notifications ✅ · 9 UI tests (core + app androidTest), README, demo script ✅ · Evaluation harness (`:engine:evaluate`, docs/evaluation) ✅ · UCI public-corpus validation (`:engine:evaluateUci`) ✅ · Next: LLM second opinion (regional languages), paper.

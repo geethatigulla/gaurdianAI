@@ -96,7 +96,7 @@ A sample is *flagged* when its risk score ≥ threshold. Primary threshold: 40 (
 
 ## Latency (JVM, after warm-up)
 
-Mean 0.094 ms · median 0.093 ms · p95 0.187 ms per sample.
+Mean 0.088 ms · median 0.090 ms · p95 0.176 ms per sample.
 
 ## False negatives — scams scored below 40 (35)
 

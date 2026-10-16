@@ -92,6 +92,7 @@ object Dataset {
 object Evaluator {
     val thresholds = listOf(20, 40, 60)
     const val PRIMARY_THRESHOLD = 40 // "Suspicious" (MODERATE) and above counts as flagged.
+    const val MAX_LISTED = 40
 
     fun score(samples: List<Sample>, analyzer: Analyzer = Analyzer(clock = { 0L })): List<Scored> {
         fun event(s: Sample) = SecurityEvent(s.id, Dataset.eventType(s.channel), s.text, EventSource.MANUAL, 0L)
@@ -175,9 +176,13 @@ object Evaluator {
             appendLine("## $title (${items.size})")
             appendLine()
             if (items.isEmpty()) { appendLine("None."); appendLine(); return }
+            if (items.size > MAX_LISTED) {
+                appendLine("Showing the first $MAX_LISTED; see per-sample.csv for all.")
+                appendLine()
+            }
             appendLine("| id | type | score | indicators | text |")
             appendLine("|---|---|---|---|---|")
-            items.forEach { s ->
+            items.take(MAX_LISTED).forEach { s ->
                 val ind = s.result.indicators.joinToString(", ") { it.type }.ifEmpty { "—" }
                 appendLine("| ${s.sample.id} | ${s.sample.scamType} | ${s.result.riskScore} | $ind | ${s.sample.text.replace("|", "/").replace("\n", " ").take(90)} |")
             }
