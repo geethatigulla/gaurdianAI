@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Guardian AI</string>
+    <string name="check_with_guardian">Check with Guardian</string>
+    <string name="widget_title">Guardian</string>
+    <string name="tile_scan_qr">Scan QR safely</string>
+    <string name="widget_description">Scan a QR code or check copied text in one tap</string>
+    <string name="shortcut_scan_qr">Scan QR</string>
+    <string name="shortcut_scan_qr_long">Scan a QR code safely</string>
+    <string name="shortcut_check_copied">Check copied</string>
+    <string name="shortcut_check_copied_long">Check copied text or link</string>
+    <string name="shortcut_check_message">Check message</string>
+    <string name="shortcut_check_message_long">Paste a message to check</string>
+    <string name="a11y_label">Guardian floating button</string>
+    <string name="a11y_summary">Tap the floating shield to check any message, link or QR code on screen</string>
+    <string name="a11y_description">Shows a floating Guardian button over other apps. When you tap it, Guardian reads the text on the screen and looks for QR codes, checks them on this phone for scam warning signs, and shows the result. If website checks are on, Guardian also reads only the address bar of your browser to warn you about risky websites. Guardian does not read your screen at any other time, and password fields are never read.</string>
+    <string name="notification_listener_label">Guardian message checks</string>
+</resources>
