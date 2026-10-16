@@ -8,6 +8,8 @@ import ai.guardian.data.repo.SettingsRepository
 import ai.guardian.feature.home.ProtectionItem
 import ai.guardian.platform.Protection
 import ai.guardian.platform.ProtectionStatus
+import ai.guardian.platform.lock.AppLock
+import ai.guardian.platform.lock.findActivity
 import ai.guardian.platform.shortcuts.QuickAccess
 import android.Manifest
 import android.os.Build
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Chat
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
@@ -99,6 +102,7 @@ class SettingsViewModel @Inject constructor(
     fun setAlertThreshold(score: Int) = viewModelScope.launch { settings.setAlertThreshold(score) }
     fun setLockScreenPrivacy(enabled: Boolean) = viewModelScope.launch { settings.setLockScreenPrivacy(enabled) }
     fun untrust(domain: String) = viewModelScope.launch { settings.untrustDomain(domain) }
+    fun setAppLock(enabled: Boolean) = viewModelScope.launch { settings.setAppLock(enabled) }
     fun clearHistory() = viewModelScope.launch { scans.clearAll() }
 }
 
@@ -250,6 +254,20 @@ fun SettingsScreen(onOpenAbout: () -> Unit, onOpenHelp: () -> Unit, viewModel: S
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
             Header("Privacy")
+            ToggleRow(Icons.Outlined.Fingerprint, "App lock", if (s.appLock) "Fingerprint or screen lock to open" else "Off", s.appLock) { enable ->
+                val activity = context.findActivity()
+                when {
+                    activity == null -> Unit
+                    !AppLock.canUse(context) -> Toast.makeText(context, "Set a screen lock in phone settings first", Toast.LENGTH_LONG).show()
+                    // Confirm it's really the owner, both to turn the lock on and to turn it off.
+                    else -> AppLock.authenticate(
+                        activity,
+                        title = if (enable) "Turn on app lock" else "Turn off app lock",
+                        onSuccess = { viewModel.setAppLock(enable) },
+                        onFailure = { msg -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() },
+                    )
+                }
+            }
             ToggleRow(Icons.Outlined.Notes, "Save message text", if (s.storeRawText) "Saved with numbers masked" else "Off", s.storeRawText, viewModel::setStoreRawText)
             ValueRow(Icons.Outlined.VerifiedUser, "Trusted websites", if (s.trustedDomains.isEmpty()) "None" else "${s.trustedDomains.size}") { dialog = "trusted" }
             ValueRow(Icons.Outlined.PhoneDisabled, "Reported numbers", if (s.reportedNumbers.isEmpty()) "None" else "${s.reportedNumbers.size}") { dialog = "reported" }

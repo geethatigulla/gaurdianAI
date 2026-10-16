@@ -8,6 +8,8 @@ import ai.guardian.feature.scan.InputMode
 import ai.guardian.navigation.GuardianRoot
 import ai.guardian.platform.incoming.IncomingRequest
 import ai.guardian.platform.incoming.IncomingRequests
+import ai.guardian.platform.lock.AppLock
+import ai.guardian.platform.lock.LockScreen
 import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
@@ -58,13 +60,36 @@ class MainActivity : ComponentActivity() {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     when (val s = state) {
                         AppState.Loading -> Unit
-                        is AppState.Ready ->
-                            if (s.onboardingDone) GuardianRoot()
-                            else OnboardingScreen(onFinished = viewModel::completeOnboarding)
+                        is AppState.Ready -> when {
+                            !s.onboardingDone -> OnboardingScreen(onFinished = viewModel::completeOnboarding)
+                            s.appLock && !viewModel.unlocked -> LockScreen(viewModel.unlockError, ::unlock)
+                            else -> GuardianRoot()
+                        }
                     }
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val away = viewModel.backgroundedAt
+        if (away != 0L && System.currentTimeMillis() - away > AppLock.RELOCK_AFTER_MS) viewModel.unlocked = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) viewModel.backgroundedAt = System.currentTimeMillis()
+    }
+
+    private fun unlock() {
+        viewModel.unlockError = null
+        AppLock.authenticate(
+            this,
+            title = "Unlock Guardian",
+            onSuccess = { viewModel.unlocked = true },
+            onFailure = { viewModel.unlockError = it },
+        )
     }
 
     override fun onNewIntent(intent: Intent) {
