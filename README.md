@@ -59,6 +59,12 @@ Installing the APK from a file on Android 13+ may be blocked by Play Protect bec
 SMS/notification access; install over USB or Wireless debugging instead. Accessibility and
 notification access then need App info → ⋮ → *Allow restricted settings* once.
 
+**Cloud builds (no local Android setup):** every push to `master` builds the debug APK on GitHub
+Actions ([workflow](.github/workflows/android-apk.yml)) and attaches it to a private pre-release
+(`build-N`) under Releases, so it can be downloaded straight onto a phone. Builds are signed with the
+debug key in the `DEBUG_KEYSTORE_B64` repo secret (base64 PKCS#12, alias `androiddebugkey`, password
+`android`), so each new APK installs over the last one.
+
 ## Permissions
 
 | Permission | Why | When asked |
